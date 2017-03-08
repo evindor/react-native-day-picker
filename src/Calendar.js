@@ -10,6 +10,7 @@ import {
 
 import Month    from './Month';
 
+const DAY = 1000 * 60 * 60 * 24;
 
 export default class Calendar extends React.Component {
 	static defaultProps = {
@@ -76,11 +77,19 @@ export default class Calendar extends React.Component {
 		daySelectedBackColor: PropTypes.string,
 		daySelectedTextColor: PropTypes.string,
 
+		daySelectedStyle: PropTypes.object,
+		daySelectedStartStyle: PropTypes.object,
+		daySelectedEndStyle: PropTypes.object,
+
 		dayInRangeBackColor: PropTypes.string,
 		dayInRangeTextColor: PropTypes.string,
 
+
 		isFutureDate: PropTypes.bool,
-		rangeSelect: PropTypes.bool
+		rangeSelect: PropTypes.bool,
+
+    minRange: PropTypes.number,
+    maxRange: PropTypes.number,
 	};
 
 	constructor(props) {
@@ -192,9 +201,10 @@ export default class Calendar extends React.Component {
 
 		months = months.map((month) => {
 			return month.map((day) => {
+        const status = this.getStatus(day.date, selectFrom, selectTo);
 				return {
 					date: day.date,
-					status: this.getStatus(day.date, selectFrom, selectTo),
+					status: status,
 					disabled: day.disabled
 				}
 			})
@@ -218,6 +228,18 @@ export default class Calendar extends React.Component {
 	}
 
 	getStatus(date, selectFrom, selectTo) {
+    var {minRange, maxRange, rangeSelect} = this.props;
+    if (rangeSelect) {
+      if (typeof minRange === 'number' && !selectTo) {
+        const isDisabled = +date > +selectFrom && +date - selectFrom < DAY * minRange;
+        if (isDisabled) { return 'disabled'; }
+      }
+      if (typeof maxRange === 'number' && !selectTo) {
+        const isDisabled = +date > +selectFrom && +date - selectFrom > DAY * maxRange;
+        if (isDisabled) { return 'disabled'; }
+      }
+    }
+
 		if (selectFrom) {
 			if (selectFrom.toDateString() === date.toDateString()) {
 				return 'selected';
